@@ -1,0 +1,38 @@
+import tkinter as tk
+
+class SodaSelector(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        self.title("Soda Selector")
+        self.geometry("500x300")
+        self.configure(bg="white")
+
+        self.label = tk.Label(self, text="Choose a Soda", font=("Helvetica", 20), bg="white")
+        self.label.pack(pady=20)
+
+        # Frame to hold horizontal buttons
+        button_frame = tk.Frame(self, bg="white")
+        button_frame.pack(pady=10)
+
+        self.create_circle_button(button_frame, "Coke", "#d32f2f")
+        self.create_circle_button(button_frame, "Pepsi", "#1976d2")
+        self.create_circle_button(button_frame, "Fanta", "#f57c00")
+        self.create_circle_button(button_frame, "Sprite", "#00A752")
+
+
+    def create_circle_button(self, parent, soda_name, color):
+        canvas = tk.Canvas(parent, width=120, height=120, bg="white", highlightthickness=0)
+        canvas.pack(side=tk.LEFT, padx=10)
+
+        circle = canvas.create_oval(10, 10, 110, 110, fill=color, outline=color)
+        text = canvas.create_text(60, 60, text=soda_name, fill="white", font=("Helvetica", 14, "bold"))
+
+        canvas.tag_bind(circle, "<Button-1>", lambda e: self.select_soda(soda_name, color))
+        canvas.tag_bind(text, "<Button-1>", lambda e: self.select_soda(soda_name, color))
+
+    def select_soda(self, soda_name, color):
+        self.label.config(text=f"Selected: {soda_name}", bg=color, fg="white")
+
+if __name__ == "__main__":
+    app = SodaSelector()
+    app.mainloop()
