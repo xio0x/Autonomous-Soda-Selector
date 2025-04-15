@@ -19,7 +19,6 @@ class SodaSelector(tk.Tk):
         self.create_circle_button(button_frame, "Fanta", "#f57c00")
         self.create_circle_button(button_frame, "Sprite", "#00A752")
 
-
     def create_circle_button(self, parent, soda_name, color):
         canvas = tk.Canvas(parent, width=120, height=120, bg="white", highlightthickness=0)
         canvas.pack(side=tk.LEFT, padx=10)
@@ -32,6 +31,14 @@ class SodaSelector(tk.Tk):
 
     def select_soda(self, soda_name, color):
         self.label.config(text=f"Selected: {soda_name}", bg=color, fg="white")
+        navigate_to_object(soda_name)  # Send robot to the object
+
+
+def navigate_to_object(object_name):
+    # Replace this with your robot control logic
+    print(f"Robot is navigating towards: {object_name}")
+    # e.g., robot.go_to_object(object_name)
+
 
 if __name__ == "__main__":
     app = SodaSelector()
