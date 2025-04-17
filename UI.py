@@ -18,10 +18,10 @@ class SodaSelector(tk.Tk):
     # ----------------- Welcome Page ----------------- #
     def show_welcome_page(self):
         self.clear_window()
-        welcome_label = tk.Label(self, text="Welcome to the Soda Selector!", font=("Helvetica", 20), bg="white")
+        welcome_label = tk.Label(self, text="Lets Go Shopping!", font=("Helvetica", 20), bg="white")
         welcome_label.pack(pady=40)
 
-        start_button = tk.Button(self, text="Start Selecting", font=("Helvetica", 16), command=self.show_selection_page)
+        start_button = tk.Button(self, text="Choose your items, and our robot will find them!", font=("Helvetica", 16), command=self.show_selection_page)
         start_button.pack(pady=20)
 
     # ----------------- Selection Page ----------------- #
