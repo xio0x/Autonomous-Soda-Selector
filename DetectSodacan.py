@@ -1,59 +1,237 @@
-import cv2 #For camera
-from ultralytics import YOLO #For AI Model
+import cv2  # For camera
+from ultralytics import YOLO  # For AI Model
+import tkinter as tk
+from tkinter import messagebox
+import threading
+import time
+from PIL import Image, ImageTk  # For displaying OpenCV frames in Tkinter
 
-"""
-scp /path/to/live_detect.py matth@192.168.137.224:~/soda_can/
-scp /path/to/runs/detect/train/weights/best.pt matth@192.168.137.224:~/soda_can/
-"""
+class SodaSelector(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        self.title("Autonomous Soda Selector")
+        self.geometry("1000x800")  # Adjusted size to accommodate camera feed
+        self.configure(bg="white")
 
-model = YOLO("runs/detect/train/weights/best.pt") #The trained AI Model
+        self.model = YOLO("runs/detect/train/weights/best.pt")  # Load the trained AI Model
+        self.cap = cv2.VideoCapture(1)  # Load Webcam (might need to change value to 0)
 
-cap = cv2.VideoCapture(1) #Load Webcam (might need to change value to 0)
+        # Has to be in BGR format
+        self.class_colors = {
+            'Coke': (0, 0, 255),
+            'Sprite': (0, 255, 0),
+            'Pepsi': (255, 0, 0),
+            'Fanta': (0, 140, 255)
+        }
+        self.confidence_threshold = 0.7
+        self.is_detecting = False  # Flag to control detection loop
 
-#Has to be in BGR format
-class_colors = {
-    'Coke':(0, 0, 255),
-    'Sprite':(0, 255, 0),
-    'Pepsi': (255, 0, 0),
-    'Fanta': (0, 140, 255)
-}
+        self.cart = ["Coke", "Pepsi"] # Example initial cart
+        self.current_index = 0
 
-confidence_threshold = 0.8
+        self.camera_frame = tk.Label(self, bg="black")
+        self.camera_frame.pack(pady=10)
+        self.current_image = None  # To hold the latest ImageTk.PhotoImage
 
-while True:
-    ret, frame = cap.read()
-    if not ret:
-        break
+        self.label_text = tk.StringVar()
+        self.label = tk.Label(self, textvariable=self.label_text, font=("Helvetica", 14), bg="white")
+        self.label_text.set("Welcome to the Autonomous Soda Selector!")
+        self.label.pack(pady=5)
 
-    # Resize the frame to 640x480 for faster detection
-    frame = cv2.resize(frame, (640, 480))
+        button_frame = tk.Frame(self, bg="white")
+        button_frame.pack(pady=10)
 
-    # Run inference
-    results = model(frame, verbose=False)[0]
+        self.create_circle_button(button_frame, "Coke", "#d32f2f")
+        self.create_circle_button(button_frame, "Pepsi", "#1976d2")
+        self.create_circle_button(button_frame, "Fanta", "#f57c00")
+        self.create_circle_button(button_frame, "Sprite", "#00A752")
 
-    # Draw the bounding boxes
-    for box in results.boxes:
-        x1, y1, x2, y2 = map(int, box.xyxy[0])
-        conf = box.conf[0]
-        cls = int(box.cls[0])
-        label = model.names[cls]
+        self.start_robot_button = tk.Button(self, text="Start Robot Vision", font=("Helvetica", 14), command=self.toggle_detection)
+        self.start_robot_button.pack(pady=15)
 
-        # Get color for the class or default to green
-        color = class_colors.get(label, (0, 255, 0))
+        self.cart_button = tk.Button(self, text="View Cart (2)", font=("Helvetica", 12), command=self.view_cart_popup)
+        self.cart_button.pack(pady=5)
+        self.update_cart_button()
 
-        if conf > confidence_threshold:
-            label_text = f"{label} {conf:.2f}"
-            (text_w, text_h), _ = cv2.getTextSize(label_text, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 2)
-            cv2.rectangle(frame, (x1, y1 - text_h - 10), (x1 + text_w, y1), color, -1)
-            cv2.putText(frame, label_text, (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
-            cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
+        self.detected_items_in_frame = set() # To avoid multiple popups for the same detection in a single frame
 
-    # Show the frame
-    cv2.imshow("Soda Can Detector", frame)
+        self.update_camera_feed()
 
-    # Quit if 'q' is pressed
-    if cv2.waitKey(1) & 0xFF == ord("q"):
-        break
+    def toggle_detection(self):
+        self.is_detecting = not self.is_detecting
+        if self.is_detecting:
+            self.start_robot_button.config(text="Stop Robot Vision")
+            threading.Thread(target=self.detect_objects, daemon=True).start()
+            self.label_text.set("Robot vision started.")
+        else:
+            self.start_robot_button.config(text="Start Robot Vision")
+            self.label_text.set("Robot vision stopped.")
 
-cap.release()
-cv2.destroyAllWindows()
+    def detect_objects(self):
+        while self.is_detecting:
+            ret, frame = self.cap.read()
+            if not ret:
+                self.is_detecting = False
+                self.label_text.set("Error: Could not read camera feed.")
+                self.start_robot_button.config(text="Start Robot Vision")
+                break
+
+            # Resize the frame for faster detection
+            resized_frame = cv2.resize(frame, (640, 480))
+            rgb_frame = cv2.cvtColor(resized_frame, cv2.COLOR_BGR2RGB)
+            pil_image = Image.fromarray(rgb_frame)
+            tk_image = ImageTk.PhotoImage(image=pil_image)
+            self.current_image = tk_image # Keep a reference
+
+            self.camera_frame.config(image=self.current_image)
+
+            # Run inference
+            results = self.model(resized_frame, verbose=False)[0]
+
+            # Draw the bounding boxes and check for cart items
+            detection_frame = resized_frame.copy()
+            detected_in_current_frame = set()
+            for box in results.boxes:
+                x1, y1, x2, y2 = map(int, box.xyxy[0])
+                conf = box.conf[0]
+                cls = int(box.cls[0])
+                label = self.model.names[cls]
+
+                # Get color for the class or default to green
+                color = self.class_colors.get(label, (0, 255, 0))
+
+                if conf > self.confidence_threshold:
+                    detected_in_current_frame.add(label)
+                    label_text = f"{label} {conf:.2f}"
+                    (text_w, text_h), _ = cv2.getTextSize(label_text, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 2)
+                    cv2.rectangle(detection_frame, (x1, y1 - text_h - 10), (x1 + text_w, y1), color, -1)
+                    cv2.putText(detection_frame, label_text, (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+                    cv2.rectangle(detection_frame, (x1, y1), (x2, y2), color, 2)
+
+                    # Check if the detected item is in the cart and we haven't shown a popup for it in this frame
+                    if label in self.cart and label not in self.detected_items_in_frame:
+                        self.after(0, lambda l=label: self.show_found_popup(l))
+                        self.cart.remove(label)
+                        self.after(0, self.update_cart_button)
+                        self.detected_items_in_frame.add(label) # Mark as processed in this frame
+
+            self.detected_items_in_frame = detected_in_current_frame # Reset for the next frame
+
+            rgb_detection_frame = cv2.cvtColor(detection_frame, cv2.COLOR_BGR2RGB)
+            pil_detection_image = Image.fromarray(rgb_detection_frame)
+            tk_detection_image = ImageTk.PhotoImage(image=pil_detection_image)
+            self.current_image = tk_detection_image # Keep a reference to the detection image too
+            self.camera_frame.config(image=self.current_image)
+
+            time.sleep(0.03) # Small delay to prevent overwhelming the GUI
+
+    def show_found_popup(self, item):
+        messagebox.showinfo("Soda Found!", f"{item} has been detected!")
+        self.label_text.set(f"{item} found and removed from the list.")
+
+    def update_camera_feed(self):
+        ret, frame = self.cap.read()
+        if ret:
+            resized_frame = cv2.resize(frame, (640, 480))
+            rgb_frame = cv2.cvtColor(resized_frame, cv2.COLOR_BGR2RGB)
+            pil_image = Image.fromarray(rgb_frame)
+            tk_image = ImageTk.PhotoImage(image=pil_image)
+            self.current_image = tk_image # Keep a reference
+            self.camera_frame.config(image=self.current_image)
+        self.after(30, self.update_camera_feed) # Update every 30 milliseconds
+
+    def create_circle_button(self, parent, soda_name, color):
+        canvas = tk.Canvas(parent, width=100, height=100, bg="white", highlightthickness=0)
+        canvas.pack(side=tk.LEFT, padx=5, pady=5)
+
+        canvas.create_oval(5, 5, 95, 95, fill="gray80", outline="gray80")
+        circle = canvas.create_oval(0, 0, 90, 90, fill=color, outline="white", width=2)
+        canvas.create_arc(0, 0, 90, 90, start=45, extent=90, style='arc',
+                          outline='white', width=1)
+        text = canvas.create_text(45, 45, text=soda_name, fill="white", font=("Helvetica", 10, "bold"))
+
+        def on_enter(e):
+            canvas.itemconfig(circle, width=3)
+        def on_leave(e):
+            canvas.itemconfig(circle, width=2)
+
+        for tag in (circle, text):
+            canvas.tag_bind(tag, "<Enter>", on_enter)
+            canvas.tag_bind(tag, "<Leave>", on_leave)
+            canvas.tag_bind(tag, "<Button-1>", lambda e: self.add_to_cart(soda_name))
+
+    # ----------------- Cart Logic ----------------- #
+    def add_to_cart(self, item):
+        if item in self.cart:
+            self.label_text.set(f"{item} is already in the cart!")
+        else:
+            self.cart.append(item)
+            self.label_text.set(f"{item} added to cart.")
+            self.update_cart_button()
+
+    def update_cart_button(self):
+        self.cart_button.config(text=f"View Cart ({len(self.cart)})")
+
+    def view_cart_popup(self):
+        popup = tk.Toplevel(self)
+        popup.title("Your Cart")
+        popup.geometry("250x250")
+        popup.configure(bg="white")
+
+        if not self.cart:
+            tk.Label(popup, text="Cart is empty.", font=("Helvetica", 12), bg="white").pack(pady=20)
+            return
+
+        tk.Label(popup, text="Tap an item to remove it:", font=("Helvetica", 12), bg="white").pack(pady=10)
+
+        for item in list(self.cart): # Iterate over a copy to allow modification
+            item_button = tk.Button(
+                popup, text=f"🧃 {item}", font=("Helvetica", 12),
+                bg="lightgray", relief=tk.RAISED,
+                command=lambda i=item, p=popup: self.remove_item_from_cart_and_popup(i, p)
+            )
+            item_button.pack(pady=5, padx=10, fill=tk.X)
+
+    def remove_item_from_cart_and_popup(self, item, popup):
+        if item in self.cart:
+            self.cart.remove(item)
+            self.update_cart_button()
+            popup.destroy()
+            self.view_cart_popup()  # Refresh the popup
+
+    # The robot navigation logic can be triggered based on the cart contents
+    def start_robot_search(self):
+        if not self.cart:
+            messagebox.showwarning("Empty Cart", "Add at least one soda before starting the robot.")
+            return
+
+        self.label_text.set("Robot search started...")
+        self.current_index = 0
+        threading.Thread(target=self.process_cart_items, daemon=True).start()
+
+    def process_cart_items(self):
+        while self.current_index < len(self.cart):
+            item = self.cart[self.current_index]
+            self.after(0, lambda i=item: self.label_text.set(f"Fetching: {i}..."))
+            self.navigate_to_object(item)
+            self.current_index += 1
+
+        self.cart.clear()
+        self.after(0, lambda: self.label_text.set("All items collected. Choose more!"))
+        self.update_cart_button()
+
+    def navigate_to_object(self, object_name):
+        print(f"Robot navigating to: {object_name}")
+        time.sleep(3)  # Simulated search
+        print(f"Robot found: {object_name}")
+        self.after(0, lambda: messagebox.showinfo("Object Found", f"{object_name} has been located!"))
+
+    def on_closing(self):
+        self.is_detecting = False  # Stop detection thread
+        self.cap.release()
+        self.destroy()
+
+if __name__ == "__main__":
+    app = SodaSelector()
+    app.protocol("WM_DELETE_WINDOW", app.on_closing)
+    app.mainloop()
