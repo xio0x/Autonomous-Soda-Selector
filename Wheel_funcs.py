@@ -75,6 +75,10 @@ def turn_left():
     pwm_r_l.ChangeDutyCycle(0)
     pwm_l_l.ChangeDutyCycle(speed)
 
+    # Placeholder time for 90 degree turn, will replace after testing
+    time.sleep(2)
+    stop()
+
 def turn_right():
     GPIO.output(R_EN_R, GPIO.HIGH)
     GPIO.output(L_EN_R, GPIO.HIGH)
@@ -85,35 +89,38 @@ def turn_right():
     pwm_l_r.ChangeDutyCycle(speed)
     pwm_r_l.ChangeDutyCycle(speed)
     pwm_l_l.ChangeDutyCycle(0)
+    
+    # Placeholder time for 90 degree turn, will replace after testing
+    time.sleep(2)
+    stop()
 
 # Test routine
-try:
-    print("Forward for 2 seconds")
-    forward()
-    time.sleep(2)
+if __name__ == "__main__":
+    try:
+        print("Forward for 2 seconds")
+        forward()
+        time.sleep(2)
 
-    print("Turn left for 2 seconds")
-    turn_left()
-    time.sleep(2)
+        print("Turn left for 2 seconds")
+        turn_left()
 
-    print("Turn right for 2 seconds")
-    turn_right()
-    time.sleep(2)
+        print("Turn right for 2 seconds")
+        turn_right()
 
-    print("Backward for 2 seconds")
-    backward()
-    time.sleep(2)
+        print("Backward for 2 seconds")
+        backward()
+        time.sleep(2)
 
-    print("Stopping")
-    stop()
+        print("Stopping")
+        stop()
 
-except KeyboardInterrupt:
-    pass
+    except KeyboardInterrupt:
+        pass
 
-finally:
-    stop()
-    pwm_r_r.stop()
-    pwm_l_r.stop()
-    pwm_r_l.stop()
-    pwm_l_l.stop()
-    GPIO.cleanup()
+    finally:
+        stop()
+        pwm_r_r.stop()
+        pwm_l_r.stop()
+        pwm_r_l.stop()
+        pwm_l_l.stop()
+        GPIO.cleanup()
