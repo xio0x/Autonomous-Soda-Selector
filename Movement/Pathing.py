@@ -1,5 +1,3 @@
-# pathing.py
-
 import time
 import sys
 from Wheel_funcs import forward, turn_left, stop  # motor functions
