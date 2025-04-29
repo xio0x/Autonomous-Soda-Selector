@@ -26,7 +26,6 @@ class SodaSelector(ctk.CTk):
         self.is_detecting = False
 
         self.cart = []
-        self.current_index = 0
         self.current_aisle = 1
         self.item_aisle_map = {}
 
@@ -40,6 +39,7 @@ class SodaSelector(ctk.CTk):
         self.grid_rowconfigure(2, weight=1)
         self.grid_rowconfigure(3, weight=1)
         self.grid_rowconfigure(4, weight=1)
+        self.grid_rowconfigure(5, weight=1)
 
         self.camera_frame = ctk.CTkLabel(self, text="")
         self.camera_frame.grid(row=0, column=0, padx=20, pady=10, sticky="nsew")
@@ -66,6 +66,9 @@ class SodaSelector(ctk.CTk):
 
         self.cart_button = ctk.CTkButton(self, text="View Cart", font=("Helvetica", 14), command=self.view_cart_popup)
         self.cart_button.grid(row=4, column=0, padx=20, pady=5, sticky="ew")
+
+        self.finish_button = ctk.CTkButton(self, text="Finish & Show Summary", font=("Helvetica", 14), command=self.show_summary_screen)
+        self.finish_button.grid(row=5, column=0, padx=20, pady=10, sticky="ew")
 
     def create_soda_button(self, parent, name, color, column):
         button = ctk.CTkButton(parent, text=name, fg_color=color, corner_radius=50, width=100, height=100,
@@ -116,7 +119,6 @@ class SodaSelector(ctk.CTk):
                 return
 
             detection_frame = resized_frame.copy()
-            detected = set()
             for box in results.boxes:
                 x1, y1, x2, y2 = map(int, box.xyxy[0])
                 conf = box.conf[0]
@@ -124,13 +126,13 @@ class SodaSelector(ctk.CTk):
                 label = self.model.names[cls]
                 color = self.class_colors.get(label, (0, 255, 0))
 
-                if conf > self.confidence_threshold:
-                    detected.add(label)
-
-                    if label in self.cart:
-                        self.after(0, lambda l=label: self.show_found_popup(l))
-                        self.cart.remove(label)
-                        self.update_cart_button()
+                if conf > self.confidence_threshold and label in self.cart:
+                    # Record aisle and remove from cart
+                    self.item_aisle_map[label] = self.current_aisle
+                    self.cart.remove(label)
+                    self.update_cart_button()
+                    self.after(0, lambda l=label: self.show_found_popup(l))
+                    return  # Show one popup at a time
 
             rgb_detection_frame = cv2.cvtColor(detection_frame, cv2.COLOR_BGR2RGB)
             img = ImageTk.PhotoImage(Image.fromarray(rgb_detection_frame))
@@ -138,6 +140,21 @@ class SodaSelector(ctk.CTk):
             self.camera_frame.image = img
 
             time.sleep(0.03)
+
+    def show_found_popup(self, label):
+        self.is_detecting = False
+
+        popup = ctk.CTkToplevel(self)
+        popup.title("Item Found")
+        popup.geometry("300x150")
+        ctk.CTkLabel(popup, text=f"{label} found in aisle {self.current_aisle}!", font=("Helvetica", 16)).pack(pady=20)
+
+        self.after(2000, lambda: self.close_popup_and_resume(popup))
+
+    def close_popup_and_resume(self, popup):
+        popup.destroy()
+        self.is_detecting = True
+        threading.Thread(target=self.detect_objects, daemon=True).start()
 
     def add_to_cart(self, item):
         if item not in self.cart:
@@ -169,6 +186,19 @@ class SodaSelector(ctk.CTk):
             self.update_cart_button()
             popup.destroy()
             self.view_cart_popup()
+
+    def show_summary_screen(self):
+        popup = ctk.CTkToplevel(self)
+        popup.title("Summary of Found Items")
+        popup.geometry("400x400")
+
+        if not self.item_aisle_map:
+            ctk.CTkLabel(popup, text="No items were found.", font=("Helvetica", 16)).pack(pady=20)
+            return
+
+        ctk.CTkLabel(popup, text="Items Found:", font=("Helvetica", 18, "bold")).pack(pady=10)
+        for item, aisle in self.item_aisle_map.items():
+            ctk.CTkLabel(popup, text=f"{item} - Aisle {aisle}", font=("Helvetica", 14)).pack(pady=5)
 
     def on_closing(self):
         self.is_detecting = False
