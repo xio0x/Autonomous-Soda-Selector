@@ -1,8 +1,3 @@
-# Upgrading your project to professional level
-# - Clean code
-# - Responsive design
-# - customtkinter for modern look
-
 import cv2
 import customtkinter as ctk
 from PIL import Image, ImageTk
