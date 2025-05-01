@@ -1,4 +1,3 @@
-"""
 README – pathing.py
 
 Overview:
@@ -45,4 +44,3 @@ Notes:
 ------
 - Do not run pathing.py directly.
 - All soda detection logic remains inside cartUI; this file only handles movement.
-"""
