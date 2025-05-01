@@ -1,59 +1,53 @@
+# pathing.py
+
 import time
-import sys
-from Wheel_funcs import forward, turn_left, stop  # motor functions
-from obstacle_detection import is_wall_close  # need to change obstacle detection
-from Selector import app  # talk to object detection to change apps
+from Wheel_funcs import forward, stop, turn_left
+from obstacle_detection import is_wall_close
+from tkinter import messagebox  # GUI popup summary
 
-def navigate_aisles():
+def navigate_aisles(app):
+    """
+    Called from cartUI when 'Start Aisle Search' is pressed.
+    Moves aisle-by-aisle until all sodas in the cart are found.
+    """
     try:
-        while True:
-            # Before moving, check if all sodas found
-            if not app.cart:
-                print("All sodas found! Stopping robot.")
-                stop()
-                break
-
-            print("Starting down a new aisle...")
+        while app.cart and app.current_aisle <= 5:
+            print(f"[Aisle {app.current_aisle}] Searching...")
+            app.after(0, lambda: app.label_text.set(f"Moving through Aisle {app.current_aisle}..."))
             forward()
 
             while True:
-                # During aisle movement
                 time.sleep(0.1)
 
-                # Check if soda detected
-                if app.new_item_detected:
-                    print("Soda detected in aisle! Pausing briefly...")
-                    stop()
-                    time.sleep(2)
-                    app.new_item_detected = False  # reset flag
-                    forward()
-
-                # Check if wall is detected
-                if is_wall_close():
-                    print("Wall detected! Preparing to turn...")
-                    stop()
-                    time.sleep(0.5)
-
-                    turn_left()  # or turn_right(), depends on layout
-                    time.sleep(0.5)
-
-                    forward()
-                    time.sleep(1.5)  # Move into next aisle entrance
-                    stop()
-                    time.sleep(0.5)
-                    break  # Break inner loop -> Start moving in next aisle
-
-                # Also re-check if all sodas found after any movement
                 if not app.cart:
-                    print("All sodas found during aisle! Stopping robot.")
+                    print("Cart is empty. Stopping robot.")
                     stop()
-                    sys.exit()
+                    break
 
-    except KeyboardInterrupt: #can change into emergency stop
-        print("Navigation interrupted by user.")
+                if is_wall_close():
+                    print("Wall detected! Turning to next aisle.")
+                    stop()
+                    time.sleep(0.5)
+
+                    turn_left()  # or turn_right() if needed
+                    time.sleep(0.5)
+
+                    forward()
+                    time.sleep(1.5)
+                    stop()
+                    time.sleep(0.5)
+
+                    app.make_turn()  # Increments aisle and updates GUI
+                    break
+
+        # Show summary after run
+        summary = "\n".join(f"{item} → Aisle {aisle}" for item, aisle in app.item_aisle_map.items()) \
+                  or "No items were located."
+        app.after(0, lambda: messagebox.showinfo("Search Summary", summary))
+        app.after(0, lambda: app.label_text.set("Search complete."))
         stop()
-        sys.exit()
 
-if __name__ == "__main__":
-    navigate_aisles()
+    except Exception as e:
+        print(f"[ERROR] Pathing failed: {e}")
+        stop()
 
