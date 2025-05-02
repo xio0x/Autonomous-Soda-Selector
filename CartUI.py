@@ -1,5 +1,6 @@
 import cv2
 import customtkinter as ctk
+from Pathing import navigate_aisles
 from PIL import Image, ImageTk
 from ultralytics import YOLO
 import threading
@@ -74,7 +75,10 @@ class SodaSelector(ctk.CTk):
         button = ctk.CTkButton(parent, text=name, fg_color=color, corner_radius=50, width=100, height=100,
                                font=("Helvetica", 12, "bold"), command=lambda: self.add_to_cart(name))
         button.grid(row=0, column=column, padx=10, pady=10, sticky="nsew")
-
+     ##############################################   
+    def start_robot_search():
+        threading.Thread(target=navigate_aisles, args=(self,), daemon=True).start()
+    ############################################
     def resize_frame(self, frame):
         screen_width, screen_height = self.winfo_width(), self.winfo_height()
         target_width, target_height = int(screen_width * 0.9), int(screen_height * 0.5)
