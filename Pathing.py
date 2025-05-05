@@ -16,14 +16,15 @@ def get_sensor_data():
     except:
         return None
 
-def navigate_aisles():
+ef navigate_aisles():
+    turn_count = 0  # Initialize turn counter
     try:
         while True:
             print("Driving forward...")
             forward()
 
             while True:
-                arduino.reset_input_buffer() 
+                arduino.reset_input_buffer()
                 time.sleep(0.1)
                 sensor_data = get_sensor_data()
 
@@ -43,7 +44,25 @@ def navigate_aisles():
 
                     stop()
                     time.sleep(0.5)
+                    
+                    turn_count += 1  # Increment turn counter
+                    print(f"Turn count: {turn_count}")
+                    
+                    if turn_count >= 3:
+                        print("Three turns completed. Stopping navigation.")
+                        stop()
+                        cleanup()
+                        return  # Exit the function
+                        
                     break  # Go to next aisle (start the loop again)
+
+    except KeyboardInterrupt:
+        print("User stopped the program.")
+    except Exception as e:
+        print(f"Error: {e}")
+    finally:
+        stop()
+        cleanup()
 
     except KeyboardInterrupt:
         print("User stopped the program.")
