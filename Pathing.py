@@ -1,7 +1,6 @@
 import time
 import sys
 from Wheel_funcs import forward, turn_right, stop  # motor functions
-from Main import app  # talk to object detection to change apps
 import serial
 
 try:
@@ -41,11 +40,11 @@ def navigate_aisles(app_instance):
                     stop()
                     time.sleep(0.5)
                     turn_right()
-                    time.sleep(0.5)
+                    time.sleep(0.5)  # First 90° turn
                     forward()
-                    time.sleep(1.5)
+                    time.sleep(1.5)  # Move forward into the next aisle
                     turn_right()
-                    time.sleep(0.5)
+                    time.sleep(0.5)  # Second 90° turn
                     forward()
                     stop()
                     time.sleep(0.5)
