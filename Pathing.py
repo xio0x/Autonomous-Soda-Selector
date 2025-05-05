@@ -4,7 +4,7 @@ from Wheel_funcs import forward, turn_right, stop  # motor functions
 import serial
 
 try:
-    arduino = serial.Serial(port="/dev/cu.usbmodem1401", baudrate=9600, timeout=1)
+    arduino = serial.Serial(port="/dev/ttyACM0", baudrate=9600, timeout=1)
 except serial.SerialException as e:
     print(f"Failed to open serial connection: {e}")
     sys.exit(1)
