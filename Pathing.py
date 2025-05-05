@@ -11,6 +11,7 @@ except serial.SerialException as e:
     print(f"Serial connection failed: {e}")
     sys.exit(1)
 
+
 def get_sensor_data():
     try:
         return arduino.readline().decode().strip()
@@ -49,6 +50,12 @@ def navigate_aisles():
 
                     turn_count += 1  # Increment turn counter
                     print(f"Turn count: {turn_count}")
+
+                    # Update aisle number in main application
+                    for widget in ctk.CTk._instances:
+                        if isinstance(widget, ctk.CTk):
+                            widget.after(0, widget.update_aisle)
+                            break
 
                     if turn_count >= 3:
                         print("Three turns completed. Stopping navigation.")
