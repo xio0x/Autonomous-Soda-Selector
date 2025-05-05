@@ -13,7 +13,7 @@ data = arduino.readline().decode().strip()
 
 def navigate_aisles(app_instance):
     try:
-        while True:
+        while app_instance.navigation_active:
             if not app_instance.cart:
                 print("All sodas found! Stopping robot.")
                 stop()
