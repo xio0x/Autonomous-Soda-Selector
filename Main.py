@@ -260,7 +260,7 @@ class SodaSelector(ctk.CTk):
                 conf = box.conf[0]
                 cls = int(box.cls[0])
                 label = self.model.names[cls]
-
+                print(f"Confidence Level: {conf} thinking {label}")
                 if conf > self.confidence_threshold:
                     if label in self.cart and label not in detected_in_frame and not self.camera_reconnecting:
                         print(f"Detected: {label}, Cart before removal: {self.cart}")
