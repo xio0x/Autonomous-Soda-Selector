@@ -76,14 +76,15 @@ def turn_left():
     GPIO.output(R_EN_L, GPIO.HIGH)
     GPIO.output(L_EN_L, GPIO.HIGH)
 
-    pwm_r_r.ChangeDutyCycle(speed)
+    pwm_r_r.ChangeDutyCycle(speed)   # Right forward
     pwm_l_r.ChangeDutyCycle(0)
-    pwm_r_l.ChangeDutyCycle(0)
-    pwm_l_l.ChangeDutyCycle(speed)
 
-    # Placeholder time for 90 degree turn, will replace after testing
+    pwm_r_l.ChangeDutyCycle(speed)   # Left backward (reversed)
+    pwm_l_l.ChangeDutyCycle(0)
+
     time.sleep(2)
     stop()
+
 
 def turn_right():
     GPIO.output(R_EN_R, GPIO.HIGH)
@@ -91,14 +92,15 @@ def turn_right():
     GPIO.output(R_EN_L, GPIO.HIGH)
     GPIO.output(L_EN_L, GPIO.HIGH)
 
-    pwm_r_r.ChangeDutyCycle(0)
+    pwm_r_r.ChangeDutyCycle(0)       # Right backward
     pwm_l_r.ChangeDutyCycle(speed)
-    pwm_r_l.ChangeDutyCycle(speed)
-    pwm_l_l.ChangeDutyCycle(0)
-    
-    # Placeholder time for 90 degree turn, will replace after testing
+
+    pwm_r_l.ChangeDutyCycle(0)       # Left forward (reversed)
+    pwm_l_l.ChangeDutyCycle(speed)
+
     time.sleep(2)
     stop()
+
 
 # Test routine
 if __name__ == "__main__":
