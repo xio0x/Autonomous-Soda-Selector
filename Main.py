@@ -387,6 +387,11 @@ class SodaSelector(ctk.CTk):
         ctk.CTkButton(popup, text="Close",
                       command=popup.destroy).pack(pady=10)
 
+    def update_aisle(self):
+        self.current_aisle += 1
+        print(f"Now in Aisle {self.current_aisle}")
+
+
     def show_end_search_popup(self):
         popup = ctk.CTkToplevel(self)
         popup.title("Search Complete")
