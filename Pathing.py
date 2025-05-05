@@ -1,6 +1,6 @@
 import time
 import sys
-from Wheel_funcs import forward, turn_left, stop  # motor functions
+from Wheel_funcs import forward, turn_right, stop  # motor functions
 from Main import app  # talk to object detection to change apps
 import serial
 
@@ -40,10 +40,13 @@ def navigate_aisles(app_instance):
                     print("Wall detected! Preparing to turn...")
                     stop()
                     time.sleep(0.5)
-                    turn_left()
+                    turn_right()
                     time.sleep(0.5)
                     forward()
                     time.sleep(1.5)
+                    turn_right()
+                    time.sleep(0.5)
+                    forward()
                     stop()
                     time.sleep(0.5)
                     break
