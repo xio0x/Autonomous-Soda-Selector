@@ -5,6 +5,8 @@ import threading
 import time
 import sys
 from Pathing import navigate_aisles
+from Wheel_funcs import stop
+
 
 
 class SodaSelector(ctk.CTk):
@@ -113,6 +115,7 @@ class SodaSelector(ctk.CTk):
 
     def toggle_detection(self):
         if self.is_detecting:
+            # Stopping detection
             self.is_detecting = False
             self.navigation_active = False  # Stop navigation
             self.start_robot_button.configure(text="Start Robot Vision")
@@ -120,13 +123,18 @@ class SodaSelector(ctk.CTk):
             if self.detection_thread and self.detection_thread.is_alive():
                 self.detection_thread.join()
             self.detection_thread = None
+            # Stop the motors when detection is stopped
+            stop()
         else:
             try:
+                # Initialize camera
                 self.cap = cv2.VideoCapture(0)
                 if not self.cap.isOpened():
                     raise IOError("Cannot open webcam")
+            
+                # Set up detection
                 self.is_detecting = True
-                self.navigation_active = True  # Start navigation
+                self.navigation_active = True
                 self.start_robot_button.configure(text="Stop Robot Vision")
                 self.detection_stopped.clear()
 
@@ -134,8 +142,8 @@ class SodaSelector(ctk.CTk):
                 self.detection_thread = threading.Thread(target=self.detect_objects, daemon=True)
                 self.detection_thread.start()
 
-                # Start navigation thread
-                self.navigation_thread = threading.Thread(target=lambda: navigate_aisles(self), daemon=True)
+                # Start navigation thread with the new navigation system
+                self.navigation_thread = threading.Thread(target=navigate_aisles, daemon=True)
                 self.navigation_thread.start()
 
             except Exception as e:
@@ -144,6 +152,7 @@ class SodaSelector(ctk.CTk):
                 self.is_detecting = False
                 self.navigation_active = False
                 self.start_robot_button.configure(text="Start Robot Vision")
+                stop()  # Ensure motors are stopped if there's an error
 
     def _attempt_camera_reconnect(self):
         print("Attempting to reconnect to camera...")
