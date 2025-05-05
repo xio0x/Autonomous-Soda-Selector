@@ -224,76 +224,58 @@ class SodaSelector(ctk.CTk):
             self.after(30, self.update_camera_feed)
 
     def detect_objects(self):
-        try:
-            ret, frame = self.cap.read()
-            if not ret:
-                self.is_detecting = False
-                self.label_text.set("Error: Camera feed lost in detection.")
-                return
-
-            resized_frame = self.resize_frame(frame)
-
+        while self.is_detecting and not self.detection_stopped.is_set():  # Add continuous detection loop
             try:
-                results = self.model(resized_frame, verbose=False)[0]
-            except RuntimeError as e:
-                print(f"Model runtime error during detection: {e}")
-                self.label_text.set(f"Model error during detection: {e}")
-                self.is_detecting = False
-                return
+                ret, frame = self.cap.read()
+                if not ret:
+                    self.is_detecting = False
+                    self.label_text.set("Error: Camera feed lost in detection.")
+                    return
+
+                resized_frame = self.resize_frame(frame)
+
+                try:
+                    results = self.model(resized_frame, verbose=False)[0]
+                except Exception as e:
+                    print(f"Model error during detection: {e}")
+                    self.label_text.set(f"Model error during detection: {e}")
+                    self.is_detecting = False
+                    return
+
+                detected_in_frame = set()
+                for box in results.boxes:
+                    conf = box.conf[0]
+                    cls = int(box.cls[0])
+                    label = self.model.names[cls]
+
+                    if conf > self.confidence_threshold:
+                        if label in self.cart and label not in detected_in_frame and not self.camera_reconnecting:
+                            print(f"Detected: {label}, Cart before removal: {self.cart}")
+                            print(f"Removing {label} from cart.")
+                            self.after(0, lambda l=label: self.show_found_popup(l))
+                            try:
+                                self.cart.remove(label)
+                                detected_in_frame.add(label)
+                            except ValueError as e:
+                                print(f"Error removing {label} from cart: {e}, Current cart: {self.cart}")
+                                self.label_text.set(f"Error removing item: {e}")
+                            self.update_cart_button()
+                        elif label in detected_in_frame:
+                            print(f"Already processed {label} in this frame.")
+                        elif label not in self.cart:
+                            print(f"{label} not in cart.")
+
+                time.sleep(0.03)  # Small delay to prevent CPU overuse
+
             except Exception as e:
-                print(f"Unexpected model error: {e}")
-                self.label_text.set(f"Unexpected model error: {e}")
+                print(f"Camera error: {e}")
                 self.is_detecting = False
+                self.label_text.set("Error during detection process")
                 return
 
-            # Process results...
-            return results
-
-        except Exception as e:
-            print(f"Camera error: {e}")
-            self.is_detecting = False
-            self.label_text.set("Error during detection process")
-            return None
-
-            detected_in_frame = set()
-            for box in results.boxes:
-                conf = box.conf[0]
-                cls = int(box.cls[0])
-                label = self.model.names[cls]
-                print(f"Confidence Level: {conf} thinking {label}")
-                if conf > self.confidence_threshold:
-                    if label in self.cart and label not in detected_in_frame and not self.camera_reconnecting:
-                        print(f"Detected: {label}, Cart before removal: {self.cart}")
-                        print(f"Removing {label} from cart.")
-                        self.after(0, lambda l=label: self.show_found_popup(l))
-                        try:
-                            self.cart.remove(label)
-                            detected_in_frame.add(label)
-                        except ValueError as e:
-                            print(f"Error removing {label} from cart: {e}, Current cart: {self.cart}")
-                            self.label_text.set(f"Error removing item: {e}")
-                        self.update_cart_button()
-                    elif label in detected_in_frame:
-                        print(f"Already processed {label} in this frame.")
-                    elif label not in self.cart:
-                        print(f"{label} not in cart.")
-
-            time.sleep(0.03)
-
-            # except cv2.error as e:
-            #     print(f"OpenCV error in detect_objects: {e}")
-            #     self.is_detecting = False
-            #     self.label_text.set("Camera error during detection.")
-            #     break
-            # except Exception as e:
-            #     print(f"An unexpected error in detect_objects: {e}")
-            #     self.is_detecting = False
-            #     self.label_text.set(f"Detection process error: {e}")
-            #     break
-            # finally:
-            #     if self.detection_stopped.is_set():
-            #         print("Detection thread stopped.")
-            #         break
+        print("Detection loop ended")
+        if self.cap and self.cap.isOpened():
+            self.cap.release()
 
     def add_to_cart(self, item):
         with self.cart_lock:
