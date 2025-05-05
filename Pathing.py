@@ -1,7 +1,8 @@
 import time
 import sys
-from Wheel_funcs import forward, turn_right, stop  # Motor control functions
+from Wheel_funcs import forward, turn_right, stop, cleanup  # Motor control functions
 import serial
+import customtkinter as ctk
 
 # Initialize Arduino serial connection
 try:
@@ -15,6 +16,7 @@ def get_sensor_data():
         return arduino.readline().decode().strip()
     except:
         return None
+
 
 def navigate_aisles():
     turn_count = 0  # Initialize turn counter
@@ -44,16 +46,21 @@ def navigate_aisles():
 
                     stop()
                     time.sleep(0.5)
-                    
+
                     turn_count += 1  # Increment turn counter
                     print(f"Turn count: {turn_count}")
-                    
+
                     if turn_count >= 3:
                         print("Three turns completed. Stopping navigation.")
                         stop()
+                        # Get the main application instance and show the popup
+                        for widget in ctk.CTk._instances:
+                            if isinstance(widget, ctk.CTk):
+                                widget.after(0, widget.show_end_search_popup)
+                                break
                         cleanup()
                         return  # Exit the function
-                        
+
                     break  # Go to next aisle (start the loop again)
 
     except KeyboardInterrupt:
@@ -64,13 +71,6 @@ def navigate_aisles():
         stop()
         cleanup()
 
-def cleanup():
-    try:
-        arduino.close()
-    except:
-        pass
-    finally:
-        sys.exit(0)
 
 if __name__ == "__main__":
     navigate_aisles()
