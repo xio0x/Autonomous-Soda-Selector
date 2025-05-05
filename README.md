@@ -41,26 +41,6 @@ The Autonomous Soda Selector is a Python-based application that simulates an aut
 
 ---
 
-## Movement System (Conceptual)
-
-While the robot does not move in this simulation, these files define the intended behavior for the physical version:
-
-### pathing.py
-- Moves the robot forward through aisles.
-- Stops briefly (2 seconds) when a soda can is detected.
-- Detects walls using ultrasonic sensors and turns into the next aisle.
-- Stops completely when all sodas are found.
-
-### wheel_funcs.py
-- Handles basic wheel commands such as forward and backward.
-- Works in conjunction with `pathing.py` and `obstacle_detection.py`.
-
-### obstacle_detection.py
-- Uses an ultrasonic sensor (via Arduino) to measure distance to walls.
-- Triggers a 90-degree turn when nearing a wall.
-
----
-
 ## Hardware Requirements
 
 If implementing the full robot system, the following components are needed:
