@@ -243,7 +243,7 @@ class SodaSelector(ctk.CTk):
                     self.navigation_active = False
                     self.start_robot_button.configure(text="Start Robot Vision")
                     stop()  # Stop motors
-                    self.label_text.set("All items found! Mission complete!")
+                    self.label_text.set(f"All items found! Mission complete!\n{self.found_items_locations}")
                     self.after(0, self.show_summary_popup)
                     return
 
