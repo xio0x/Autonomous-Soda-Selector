@@ -16,7 +16,7 @@ def get_sensor_data():
     except:
         return None
 
-ef navigate_aisles():
+def navigate_aisles():
     turn_count = 0  # Initialize turn counter
     try:
         while True:
