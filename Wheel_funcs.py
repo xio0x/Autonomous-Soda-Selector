@@ -41,6 +41,8 @@ def stop():
         GPIO.output(pin, GPIO.LOW)
     for pwm in [pwm_r_r, pwm_l_r, pwm_r_l, pwm_l_l]:
         pwm.ChangeDutyCycle(0)
+                
+    time.sleep(0.25)
 
 def forward():
     GPIO.output(R_EN_R, GPIO.HIGH)
@@ -82,7 +84,7 @@ def turn_left():
     pwm_r_l.ChangeDutyCycle(speed)   # Left backward (reversed)
     pwm_l_l.ChangeDutyCycle(0)
 
-    time.sleep(2)
+    time.sleep(0.6)
     stop()
 
 
@@ -98,7 +100,7 @@ def turn_right():
     pwm_r_l.ChangeDutyCycle(0)       # Left forward (reversed)
     pwm_l_l.ChangeDutyCycle(speed)
 
-    time.sleep(2)
+    time.sleep(0.6)
     stop()
 
 
