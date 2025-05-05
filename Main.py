@@ -18,6 +18,7 @@ class SodaSelector(ctk.CTk):
         self.cart_lock = threading.Lock()
         self.navigation_thread = None
         self.navigation_active = False
+        self.found_items_locations = {}
 
         self.model = YOLO("runs/detect/train/weights/best.pt")
         self.cap = None
@@ -243,6 +244,7 @@ class SodaSelector(ctk.CTk):
                     self.start_robot_button.configure(text="Start Robot Vision")
                     stop()  # Stop motors
                     self.label_text.set("All items found! Mission complete!")
+                    self.after(0, self.show_summary_popup)
                     return
 
                 ret, frame = self.cap.read()
@@ -271,6 +273,7 @@ class SodaSelector(ctk.CTk):
                         if label in self.cart and label not in detected_in_frame and not self.camera_reconnecting:
                             print(f"Detected: {label}, Cart before removal: {self.cart}")
                             print(f"Removing {label} from cart.")
+                            self.found_items_locations[label] = f"Aisle {self.current_aisle}"
                             self.after(0, lambda l=label: self.show_found_popup(l))
                             try:
                                 self.cart.remove(label)
@@ -352,6 +355,37 @@ class SodaSelector(ctk.CTk):
             popup.destroy()
 
         popup.after(2000, close_popup)
+
+    def show_summary_popup(self):
+        popup = ctk.CTkToplevel(self)
+        popup.title("Shopping Summary")
+        popup.geometry("400x300")
+        popup.attributes('-topmost', True)
+
+        # Header
+        ctk.CTkLabel(popup, text="Items Found Summary",
+                     font=("Helvetica", 18, "bold")).pack(pady=10)
+
+        # Create a frame for the summary
+        summary_frame = ctk.CTkFrame(popup)
+        summary_frame.pack(pady=10, padx=20, fill="both", expand=True)
+
+        # Add header row
+        ctk.CTkLabel(summary_frame, text="Item",
+                     font=("Helvetica", 14, "bold")).grid(row=0, column=0, padx=10, pady=5)
+        ctk.CTkLabel(summary_frame, text="Location",
+                     font=("Helvetica", 14, "bold")).grid(row=0, column=1, padx=10, pady=5)
+
+        # Add items
+        for row, (item, location) in enumerate(self.found_items_locations.items(), 1):
+            ctk.CTkLabel(summary_frame, text=item,
+                         font=("Helvetica", 12)).grid(row=row, column=0, padx=10, pady=5)
+            ctk.CTkLabel(summary_frame, text=location,
+                         font=("Helvetica", 12)).grid(row=row, column=1, padx=10, pady=5)
+
+        # Close button
+        ctk.CTkButton(popup, text="Close",
+                      command=popup.destroy).pack(pady=10)
 
 
 if __name__ == "__main__":
