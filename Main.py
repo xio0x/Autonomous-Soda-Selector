@@ -165,6 +165,15 @@ class SodaSelector(ctk.CTk):
                 self.start_robot_button.configure(text="Start Robot Vision")
                 stop()  # Ensure motors are stopped if there's an error
 
+    def _run_navigation(self):
+        navigate_aisles()  # This will now return after 3 turns
+        # When navigation is done, stop everything
+        self.is_detecting = False
+        self.navigation_active = False
+        self.after(0, lambda: self.start_robot_button.configure(text="Start Robot Vision"))
+        self.after(0, lambda: self.label_text.set("Navigation complete - three turns made"))
+        stop()
+
     def _attempt_camera_reconnect(self):
         print("Attempting to reconnect to camera...")
         self.camera_reconnecting = True
@@ -226,6 +235,16 @@ class SodaSelector(ctk.CTk):
     def detect_objects(self):
         while self.is_detecting and not self.detection_stopped.is_set():  # Add continuous detection loop
             try:
+                # Check if cart is empty - if it is, stop everything
+                if not self.cart:
+                    print("Cart is empty - all items found!")
+                    self.is_detecting = False
+                    self.navigation_active = False
+                    self.start_robot_button.configure(text="Start Robot Vision")
+                    stop()  # Stop motors
+                    self.label_text.set("All items found! Mission complete!")
+                    return
+
                 ret, frame = self.cap.read()
                 if not ret:
                     self.is_detecting = False
