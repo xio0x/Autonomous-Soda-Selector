@@ -1,11 +1,9 @@
 import cv2
 import customtkinter as ctk
-from PIL import Image
 from ultralytics import YOLO
 import threading
 import time
 import sys
-from customtkinter import CTkImage
 from Pathing import navigate_aisles
 
 
@@ -149,14 +147,17 @@ class SodaSelector(ctk.CTk):
 
     def _attempt_camera_reconnect(self):
         print("Attempting to reconnect to camera...")
-        self.camera_reconnecting = True  # ADDED
+        self.camera_reconnecting = True
+
         if self.detection_thread and self.detection_thread.is_alive():
             self.detection_stopped.set()
             self.detection_thread.join()
             self.detection_stopped.clear()
 
-        if hasattr(self, 'cap'):
+        if hasattr(self, 'cap') and self.cap is not None:
             self.cap.release()
+            time.sleep(1)  # Give time for OS to release the camera resource
+
         try:
             self.cap = cv2.VideoCapture(0)
             if not self.cap.isOpened():
@@ -169,7 +170,7 @@ class SodaSelector(ctk.CTk):
             self.label_text.set(f"Camera Reconnect Error: {e}")
             return False
         finally:
-            self.camera_reconnecting = False  # ADDED
+            self.camera_reconnecting = False
 
     def update_camera_feed(self):
         try:
