@@ -4,7 +4,7 @@ from ultralytics import YOLO
 import threading
 import time
 import sys
-from Pathing2 import navigate_aisles
+from Pathing import navigate_aisles
 from Wheel_funcs import stop
 
 
