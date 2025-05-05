@@ -17,6 +17,8 @@ class SodaSelector(ctk.CTk):
         self.minsize(1000, 700)
         ctk.set_appearance_mode("light")
         self.cart_lock = threading.Lock()
+        self.navigation_thread = None
+        self.navigation_active = False
 
         self.model = YOLO("runs/detect/train/weights/best.pt")
         self.cap = None
@@ -114,6 +116,7 @@ class SodaSelector(ctk.CTk):
     def toggle_detection(self):
         if self.is_detecting:
             self.is_detecting = False
+            self.navigation_active = False  # Stop navigation
             self.start_robot_button.configure(text="Start Robot Vision")
             self.detection_stopped.set()
             if self.detection_thread and self.detection_thread.is_alive():
@@ -125,14 +128,23 @@ class SodaSelector(ctk.CTk):
                 if not self.cap.isOpened():
                     raise IOError("Cannot open webcam")
                 self.is_detecting = True
+                self.navigation_active = True  # Start navigation
                 self.start_robot_button.configure(text="Stop Robot Vision")
                 self.detection_stopped.clear()
+
+                # Start detection thread
                 self.detection_thread = threading.Thread(target=self.detect_objects, daemon=True)
                 self.detection_thread.start()
+
+                # Start navigation thread
+                self.navigation_thread = threading.Thread(target=lambda: navigate_aisles(self), daemon=True)
+                self.navigation_thread.start()
+
             except Exception as e:
                 print(f"Error starting detection: {e}")
                 self.label_text.set(f"Error starting detection: {e}")
                 self.is_detecting = False
+                self.navigation_active = False
                 self.start_robot_button.configure(text="Start Robot Vision")
 
     def _attempt_camera_reconnect(self):
@@ -325,13 +337,9 @@ class SodaSelector(ctk.CTk):
 if __name__ == "__main__":
     app = SodaSelector()
     app.protocol("WM_DELETE_WINDOW", app.on_closing)
-
-    # Start navigation in a separate thread to not block the GUI
-    navigation_thread = threading.Thread(target=lambda: navigate_aisles(app), daemon=True)
-    navigation_thread.start()
-
     try:
         app.mainloop()
     except Exception as e:
         print(f"Mainloop error: {e}")
         sys.exit(1)
+
