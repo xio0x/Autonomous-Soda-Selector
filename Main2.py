@@ -5,7 +5,7 @@ import threading
 import time
 import sys
 from Pathing2 import navigate_aisles
-from Wheel_funcs import stop
+from Wheel_funcs import stop, cleanup
 
 
 class SodaSelector(ctk.CTk):
@@ -335,6 +335,7 @@ class SodaSelector(ctk.CTk):
             self.detection_thread.join()
         if hasattr(self, 'cap') and self.cap is not None:
             self.cap.release()
+        cleanup()
         self.destroy()
 
     def show_found_popup(self, label):
