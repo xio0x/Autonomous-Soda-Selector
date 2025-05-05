@@ -55,6 +55,7 @@ def navigate_aisles():
                     for widget in ctk.CTk._instances:
                         if isinstance(widget, ctk.CTk):
                             widget.after(0, widget.update_aisle)
+                            print(f"Now in aisle {widget.current_aisle}")
                             break
 
                     if turn_count >= 3:
