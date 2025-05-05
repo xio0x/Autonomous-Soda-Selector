@@ -1,0 +1,76 @@
+import time
+import sys
+from Wheel_funcs import forward, turn_left, stop  # motor functions
+from Main import app  # talk to object detection to change apps
+import serial
+
+try:
+    arduino = serial.Serial(port="/dev/cu.usbmodem1401", baudrate=9600, timeout=1)
+except serial.SerialException as e:
+    print(f"Failed to open serial connection: {e}")
+    sys.exit(1)
+data = arduino.readline().decode().strip()
+
+
+def navigate_aisles(app_instance):
+    try:
+        while True:
+            if not app_instance.cart:
+                print("All sodas found! Stopping robot.")
+                stop()
+                break
+
+            print("Starting down a new aisle...")
+            forward()
+
+            while True:
+                time.sleep(0.1)
+
+                # Check if soda detected
+                if app_instance.new_item_detected:
+                    print("Soda detected in aisle! Pausing briefly...")
+                    stop()
+                    time.sleep(2)
+                    app_instance.new_item_detected = False  # reset flag
+                    forward()
+
+                # Check if wall is detected - ensure data is defined
+                sensor_data = app_instance.get_sensor_data()  # Assuming this method exists
+                if sensor_data and sensor_data == "1":
+                    print("Wall detected! Preparing to turn...")
+                    stop()
+                    time.sleep(0.5)
+                    turn_left()
+                    time.sleep(0.5)
+                    forward()
+                    time.sleep(1.5)
+                    stop()
+                    time.sleep(0.5)
+                    break
+
+                # Check if all sodas found
+                if not app_instance.cart:
+                    print("All sodas found during aisle! Stopping robot.")
+                    stop()
+                    return
+
+    except KeyboardInterrupt:
+        print("User Stopped Program")
+    except Exception as e:
+        print(f"Error occurred: {e}")
+    finally:
+        stop()
+        # Add any necessary cleanup here
+
+
+if __name__ == "__main__":
+    navigate_aisles()
+
+
+def cleanup():
+    try:
+        arduino.close()
+    except:
+        pass
+    finally:
+        sys.exit(0)
