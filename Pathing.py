@@ -64,14 +64,6 @@ def navigate_aisles():
         stop()
         cleanup()
 
-    except KeyboardInterrupt:
-        print("User stopped the program.")
-    except Exception as e:
-        print(f"Error: {e}")
-    finally:
-        stop()
-        cleanup()
-
 def cleanup():
     try:
         arduino.close()
