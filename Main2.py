@@ -8,7 +8,6 @@ from Pathing import navigate_aisles
 from Wheel_funcs import stop
 
 
-
 class SodaSelector(ctk.CTk):
     def __init__(self):
         super().__init__()
@@ -22,24 +21,18 @@ class SodaSelector(ctk.CTk):
 
         self.model = YOLO("runs/detect/train/weights/best.pt")
         self.cap = None
-        try:
-            self.cap = cv2.VideoCapture(0)
-            if not self.cap.isOpened():
-                raise IOError("Cannot open webcam")
-        except IOError as e:
-            print(f"IOError occurred: {e}")
-            self.label_text.set(f"Camera Error: {e}")
-        except Exception as e:
-            print(f"An unexpected error occurred during video capture: {e}")
-            self.label_text.set(f"Camera Error: {e}")
-        finally:
-            if self.cap and not self.cap.isOpened():
-                self.cap.release()
-                cv2.destroyAllWindows()
-                print("Video capture ended due to an error.")
-            elif not self.cap:
-                print("Video capture was not attempted due to an earlier error.")
-                sys.exit(1)
+        # Initialize camera with retry logic
+        for camera_index in range(2):  # Try both camera 0 and 1
+            try:
+                self.cap = cv2.VideoCapture(camera_index)
+                if self.cap.isOpened():
+                    print(f"Successfully connected to camera {camera_index}")
+                    break
+            except Exception as e:
+                print(f"Failed to open camera {camera_index}: {e}")
+                if self.cap:
+                    self.cap.release()
+                self.cap = None
 
         self.class_colors = {
             'Coke': (0, 0, 255),
@@ -127,24 +120,42 @@ class SodaSelector(ctk.CTk):
             stop()
         else:
             try:
-                # Initialize camera
-                self.cap = cv2.VideoCapture(0)
-                if not self.cap.isOpened():
-                    raise IOError("Cannot open webcam")
-            
-                # Set up detection
+                # Try to initialize camera if not already initialized
+                if not self.cap or not self.cap.isOpened():
+                    for camera_index in range(2):
+                        try:
+                            self.cap = cv2.VideoCapture(camera_index)
+                            if self.cap.isOpened():
+                                print(f"Connected to camera {camera_index}")
+                                break
+                        except Exception as e:
+                            print(f"Failed to open camera {camera_index}: {e}")
+                            if self.cap:
+                                self.cap.release()
+                            self.cap = None
+                            continue
+
+                if not self.cap or not self.cap.isOpened():
+                    raise IOError("Could not initialize any camera")
+
+                # Test camera with a single frame read
+                ret, _ = self.cap.read()
+                if not ret:
+                    raise IOError("Camera initialized but cannot read frames")
+
+                # If we get here, camera is working
                 self.is_detecting = True
                 self.navigation_active = True
                 self.start_robot_button.configure(text="Stop Robot Vision")
                 self.detection_stopped.clear()
 
-                # Start detection thread
+                # Start threads
                 self.detection_thread = threading.Thread(target=self.detect_objects, daemon=True)
                 self.detection_thread.start()
 
-                # Start navigation thread with the new navigation system
                 self.navigation_thread = threading.Thread(target=navigate_aisles, daemon=True)
                 self.navigation_thread.start()
+
 
             except Exception as e:
                 print(f"Error starting detection: {e}")
