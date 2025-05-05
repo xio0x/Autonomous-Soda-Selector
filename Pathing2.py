@@ -23,7 +23,7 @@ def navigate_aisles():
             forward()
 
             while True:
-                ser.reset_input_buffer() 
+                arduino.reset_input_buffer() 
                 time.sleep(0.1)
                 sensor_data = get_sensor_data()
 
