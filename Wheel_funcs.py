@@ -42,7 +42,7 @@ def stop():
     for pwm in [pwm_r_r, pwm_l_r, pwm_r_l, pwm_l_l]:
         pwm.ChangeDutyCycle(0)
                 
-    time.sleep(0.25)
+    time.sleep(0.3)
 
 def forward():
     GPIO.output(R_EN_R, GPIO.HIGH)
