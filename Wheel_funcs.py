@@ -110,6 +110,7 @@ if __name__ == "__main__":
         print("Forward for 2 seconds")
         forward()
         time.sleep(2)
+        stop()
 
         print("Turn left for 2 seconds")
         turn_left()
