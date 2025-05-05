@@ -103,6 +103,13 @@ def turn_right():
     time.sleep(0.6)
     stop()
 
+def cleanup():
+    stop()
+    pwm_r_r.stop()
+    pwm_l_r.stop()
+    pwm_r_l.stop()
+    pwm_l_l.stop()
+    GPIO.cleanup()
 
 # Test routine
 if __name__ == "__main__":
