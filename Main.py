@@ -387,6 +387,34 @@ class SodaSelector(ctk.CTk):
         ctk.CTkButton(popup, text="Close",
                       command=popup.destroy).pack(pady=10)
 
+    def show_end_search_popup(self):
+        popup = ctk.CTkToplevel(self)
+        popup.title("Search Complete")
+        popup.geometry("400x200")
+        popup.attributes('-topmost', True)
+
+        # Header
+        ctk.CTkLabel(popup, text="End of Search", 
+                     font=("Helvetica", 24, "bold")).pack(pady=20)
+
+        # Message
+        remaining_items = len(self.cart)
+        if remaining_items > 0:
+            items_text = ', '.join(self.cart)
+            message = f"Unable to find {remaining_items} item{'s' if remaining_items > 1 else ''}:\n{items_text}"
+        else:
+            message = "All items have been found!"
+        
+        ctk.CTkLabel(popup, text=message, 
+                     font=("Helvetica", 14)).pack(pady=20)
+
+        # Close button
+        ctk.CTkButton(popup, text="Close", 
+                  command=popup.destroy).pack(pady=10)
+
+        # Show the summary popup after this one closes
+        popup.after(3000, lambda: [popup.destroy(), self.show_summary_popup()])
+
 
 if __name__ == "__main__":
     app = SodaSelector()
