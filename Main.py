@@ -1,12 +1,13 @@
 import cv2
 import customtkinter as ctk
-from PIL import Image, ImageTk
+from PIL import Image
 from ultralytics import YOLO
 import threading
 import time
 import sys
 from customtkinter import CTkImage
 from Pathing import navigate_aisles
+
 
 class SodaSelector(ctk.CTk):
     def __init__(self):
@@ -321,16 +322,14 @@ class SodaSelector(ctk.CTk):
         popup.after(2000, close_popup)
 
 
-
-
 if __name__ == "__main__":
     app = SodaSelector()
     app.protocol("WM_DELETE_WINDOW", app.on_closing)
-    
+
     # Start navigation in a separate thread to not block the GUI
     navigation_thread = threading.Thread(target=lambda: navigate_aisles(app), daemon=True)
     navigation_thread.start()
-    
+
     try:
         app.mainloop()
     except Exception as e:
