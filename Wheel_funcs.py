@@ -88,7 +88,7 @@ def turn_left():
     pwm_r_l.ChangeDutyCycle(speed)  # Left backward (reversed)
     pwm_l_l.ChangeDutyCycle(0)
 
-    time.sleep(0.9)
+    time.sleep(0.85)
     stop()
 
 
@@ -104,7 +104,7 @@ def turn_right():
     pwm_r_l.ChangeDutyCycle(0)  # Left forward (reversed)
     pwm_l_l.ChangeDutyCycle(speed)
 
-    time.sleep(0.85)
+    time.sleep(0.83)
     stop()
 
 
