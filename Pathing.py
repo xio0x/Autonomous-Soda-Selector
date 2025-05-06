@@ -45,7 +45,7 @@ def navigate_aisles(app):  # Add app parameter
                         turn_left()
                         time.sleep(0.5)
                         forward()
-                        time.sleep(1.5)
+                        time.sleep(2)
                         turn_left()
                         time.sleep(0.5)
                     else:
