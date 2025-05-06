@@ -1,6 +1,6 @@
 import time
 import sys
-from Wheel_funcs import forward, turn_right, stop, cleanup  # Motor control functions
+from Wheel_funcs import forward, turn_left, turn_right, stop, cleanup  # Motor control functions
 import serial
 import customtkinter as ctk
 
@@ -55,11 +55,11 @@ def navigate_aisles(app):  # Add app parameter
                     if current_aisle % 2 == 0:
                         print("Even aisle — turning LEFT.")
                         # Turn left (180° turn via left)
-                        turn_right()  # Assuming right turn actually turns left logically
+                        turn_left()  # Assuming right turn actually turns left logically
                         time.sleep(0.5)
                         forward()
                         time.sleep(1.5)
-                        turn_right()
+                        turn_left()
                         time.sleep(0.5)
                     else:
                         print("Odd aisle — turning RIGHT.")
@@ -83,7 +83,6 @@ def navigate_aisles(app):  # Add app parameter
                         stop()
                         # Show end search popup
                         app.after(0, app.show_end_search_popup)
-                        cleanup()
                         return  # Exit the function
                         
                     break  # Go to next aisle (start the loop again)
