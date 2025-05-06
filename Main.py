@@ -99,7 +99,7 @@ class SodaSelector(ctk.CTk):
         self.close_button = ctk.CTkButton(self, text="Close", font=("Helvetica", 14),
                                           command=self.on_closing,
                                           fg_color="red", hover_color="#D32F2F")
-        self.close_button.grid(row=5, column=0, padx=20, pady=5, sticky="ew")
+        self.close_button.grid(row=0, column=0, padx=20, pady=5, sticky="ew")
 
     def create_soda_button(self, parent, name, color, column):
         button = ctk.CTkButton(parent, text=name, fg_color=color, corner_radius=50, width=100, height=100,
