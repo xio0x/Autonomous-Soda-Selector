@@ -16,24 +16,27 @@ L_EN_L = 6
 
 # PWM settings
 frequency = 1000  # Hz
-speed = 40        # Duty cycle (0–100)
+speed = 75  # Duty cycle (0–100)
 
-# GPIO setup
-GPIO.setmode(GPIO.BCM)
-all_pins = [RPWM_R, LPWM_R, R_EN_R, L_EN_R,
-            RPWM_L, LPWM_L, R_EN_L, L_EN_L]
-GPIO.setup(all_pins, GPIO.OUT)
+def init_gpio():
+    GPIO.setmode(GPIO.BCM)
+    all_pins = [RPWM_R, LPWM_R, R_EN_R, L_EN_R,
+                RPWM_L, LPWM_L, R_EN_L, L_EN_L]
+    GPIO.setup(all_pins, GPIO.OUT)
 
-# PWM initialization
-pwm_r_r = GPIO.PWM(RPWM_R, frequency)
-pwm_l_r = GPIO.PWM(LPWM_R, frequency)
-pwm_r_l = GPIO.PWM(RPWM_L, frequency)
-pwm_l_l = GPIO.PWM(LPWM_L, frequency)
+    # PWM initialization
+    global pwm_r_r, pwm_l_r, pwm_r_l, pwm_l_l
+    pwm_r_r = GPIO.PWM(RPWM_R, frequency)
+    pwm_l_r = GPIO.PWM(LPWM_R, frequency)
+    pwm_r_l = GPIO.PWM(RPWM_L, frequency)
+    pwm_l_l = GPIO.PWM(LPWM_L, frequency)
 
-pwm_r_r.start(0)
-pwm_l_r.start(0)
-pwm_r_l.start(0)
-pwm_l_l.start(0)
+    pwm_r_r.start(0)
+    pwm_l_r.start(0)
+    pwm_r_l.start(0)
+    pwm_l_l.start(0)
+
+
 
 # Movement functions
 def stop():
@@ -41,8 +44,9 @@ def stop():
         GPIO.output(pin, GPIO.LOW)
     for pwm in [pwm_r_r, pwm_l_r, pwm_r_l, pwm_l_l]:
         pwm.ChangeDutyCycle(0)
-                
-    time.sleep(0.3)
+
+    time.sleep(0.25)
+
 
 def forward():
     GPIO.output(R_EN_R, GPIO.HIGH)
@@ -52,7 +56,7 @@ def forward():
 
     pwm_r_r.ChangeDutyCycle(speed)
     pwm_l_r.ChangeDutyCycle(0)
-    
+
     # REVERSE LEFT MOTOR POLARITY
     pwm_r_l.ChangeDutyCycle(0)
     pwm_l_l.ChangeDutyCycle(speed)
@@ -78,13 +82,13 @@ def turn_left():
     GPIO.output(R_EN_L, GPIO.HIGH)
     GPIO.output(L_EN_L, GPIO.HIGH)
 
-    pwm_r_r.ChangeDutyCycle(speed)   # Right forward
+    pwm_r_r.ChangeDutyCycle(speed)  # Right forward
     pwm_l_r.ChangeDutyCycle(0)
 
-    pwm_r_l.ChangeDutyCycle(speed)   # Left backward (reversed)
+    pwm_r_l.ChangeDutyCycle(speed)  # Left backward (reversed)
     pwm_l_l.ChangeDutyCycle(0)
 
-    time.sleep(1.2)
+    time.sleep(0.6)
     stop()
 
 
@@ -94,14 +98,15 @@ def turn_right():
     GPIO.output(R_EN_L, GPIO.HIGH)
     GPIO.output(L_EN_L, GPIO.HIGH)
 
-    pwm_r_r.ChangeDutyCycle(0)       # Right backward
+    pwm_r_r.ChangeDutyCycle(0)  # Right backward
     pwm_l_r.ChangeDutyCycle(speed)
 
-    pwm_r_l.ChangeDutyCycle(0)       # Left forward (reversed)
+    pwm_r_l.ChangeDutyCycle(0)  # Left forward (reversed)
     pwm_l_l.ChangeDutyCycle(speed)
 
-    time.sleep(1.2)
+    time.sleep(0.6)
     stop()
+
 
 def cleanup():
     stop()
@@ -110,6 +115,7 @@ def cleanup():
     pwm_r_l.stop()
     pwm_l_l.stop()
     GPIO.cleanup()
+
 
 # Test routine
 if __name__ == "__main__":
