@@ -46,7 +46,7 @@ class SodaSelector(ctk.CTk):
             'Pepsi': (255, 0, 0),
             'Fanta': (0, 140, 255)
         }
-        self.confidence_threshold = 0.70
+        self.confidence_threshold = 0.60
         self.is_detecting = False
         self.detection_thread = None
         self.detection_stopped = threading.Event()
