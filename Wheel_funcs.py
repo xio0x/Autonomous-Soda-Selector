@@ -120,6 +120,9 @@ def cleanup():
 # Test routine
 if __name__ == "__main__":
     try:
+
+        init_gpio()
+        
         print("Forward for 2 seconds")
         forward()
         time.sleep(2)
