@@ -67,6 +67,7 @@ class SodaSelector(ctk.CTk):
         self.grid_rowconfigure(2, weight=1)
         self.grid_rowconfigure(3, weight=1)
         self.grid_rowconfigure(4, weight=1)
+        self.grid_rowconfigure(5, weight=1)
 
         self.camera_frame = ctk.CTkLabel(self, text="")
         self.camera_frame.grid(row=0, column=0, padx=20, pady=10, sticky="nsew")
@@ -94,6 +95,11 @@ class SodaSelector(ctk.CTk):
 
         self.cart_button = ctk.CTkButton(self, text="View Cart", font=("Helvetica", 14), command=self.view_cart_popup)
         self.cart_button.grid(row=4, column=0, padx=20, pady=5, sticky="ew")
+
+        self.close_button = ctk.CTkButton(self, text="Close", font=("Helvetica", 14),
+                                          command=self.on_closing,
+                                          fg_color="red", hover_color="#D32F2F")
+        self.close_button.grid(row=5, column=0, padx=20, pady=5, sticky="ew")
 
     def create_soda_button(self, parent, name, color, column):
         button = ctk.CTkButton(parent, text=name, fg_color=color, corner_radius=50, width=100, height=100,
@@ -248,6 +254,7 @@ class SodaSelector(ctk.CTk):
                     self.navigation_active = False
                     self.start_robot_button.configure(text="Start Robot Vision")
                     stop()  # Stop motors
+                    cleanup()
                     self.label_text.set(f"All items found! Mission complete!\n{self.found_items_locations}")
                     self.after(0, self.show_summary_popup)
                     return
