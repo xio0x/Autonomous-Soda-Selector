@@ -16,7 +16,7 @@ L_EN_L = 6
 
 # PWM settings
 frequency = 1000  # Hz
-speed = 75  # Duty cycle (0–100)
+speed = 40  # Duty cycle (0–100)
 
 def init_gpio():
     GPIO.setmode(GPIO.BCM)
@@ -45,7 +45,7 @@ def stop():
     for pwm in [pwm_r_r, pwm_l_r, pwm_r_l, pwm_l_l]:
         pwm.ChangeDutyCycle(0)
 
-    time.sleep(0.25)
+    time.sleep(0.3)
 
 
 def forward():
@@ -88,7 +88,7 @@ def turn_left():
     pwm_r_l.ChangeDutyCycle(speed)  # Left backward (reversed)
     pwm_l_l.ChangeDutyCycle(0)
 
-    time.sleep(0.6)
+    time.sleep(1.2)
     stop()
 
 
@@ -104,7 +104,7 @@ def turn_right():
     pwm_r_l.ChangeDutyCycle(0)  # Left forward (reversed)
     pwm_l_l.ChangeDutyCycle(speed)
 
-    time.sleep(0.6)
+    time.sleep(1.2)
     stop()
 
 
