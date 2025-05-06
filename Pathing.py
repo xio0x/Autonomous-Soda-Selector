@@ -19,7 +19,7 @@ def get_sensor_data():
         return None
 
 
-def navigate_aisles():
+def navigate_aisles(app):  # Add app parameter
     turn_count = 0  # Initialize turn counter
     try:
         while True:
@@ -47,28 +47,21 @@ def navigate_aisles():
 
                     stop()
                     time.sleep(0.5)
-
+                    
                     turn_count += 1  # Increment turn counter
                     print(f"Turn count: {turn_count}")
-
+                    
                     # Update aisle number in main application
-                    for widget in ctk.CTk._instances:
-                        if isinstance(widget, ctk.CTk):
-                            widget.after(0, widget.update_aisle)
-                            print(f"Now in aisle {widget.current_aisle}")
-                            break
-
+                    app.after(0, app.update_aisle)
+                    
                     if turn_count >= 3:
                         print("Three turns completed. Stopping navigation.")
                         stop()
-                        # Get the main application instance and show the popup
-                        for widget in ctk.CTk._instances:
-                            if isinstance(widget, ctk.CTk):
-                                widget.after(0, widget.show_end_search_popup)
-                                break
+                        # Show end search popup
+                        app.after(0, app.show_end_search_popup)
                         cleanup()
                         return  # Exit the function
-
+                        
                     break  # Go to next aisle (start the loop again)
 
     except KeyboardInterrupt:
