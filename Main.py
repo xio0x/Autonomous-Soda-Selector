@@ -5,7 +5,12 @@ import threading
 import time
 import sys
 from Pathing import navigate_aisles
-from Wheel_funcs import stop, cleanup
+try:
+    from Wheel_funcs import init_gpio, stop, cleanup
+    init_gpio()
+except Exception as e:
+    print(f"Error initializing GPIO: {e}")
+
 
 
 class SodaSelector(ctk.CTk):
@@ -154,7 +159,7 @@ class SodaSelector(ctk.CTk):
                 self.detection_thread = threading.Thread(target=self.detect_objects, daemon=True)
                 self.detection_thread.start()
 
-                self.navigation_thread = threading.Thread(target=navigate_aisles(self), daemon=True)
+                self.navigation_thread = threading.Thread(target=lambda: navigate_aisles(self), daemon=True)
                 self.navigation_thread.start()
 
 
