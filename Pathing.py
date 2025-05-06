@@ -52,7 +52,7 @@ def navigate_aisles(app):  # Add app parameter
                     print(f"Turn count: {turn_count}")
 ############
                      # Decide turn direction using modulo
-                    if current_aisle % 2 == 0:
+                    if app.current_aisle % 2 == 0:
                         print("Even aisle — turning LEFT.")
                         # Turn left (180° turn via left)
                         turn_left()  # Assuming right turn actually turns left logically
@@ -93,7 +93,7 @@ def navigate_aisles(app):  # Add app parameter
         print(f"Error: {e}")
     finally:
         stop()
-        cleanup()
+
 
 
 if __name__ == "__main__":
