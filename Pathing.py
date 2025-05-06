@@ -50,6 +50,30 @@ def navigate_aisles(app):  # Add app parameter
                     
                     turn_count += 1  # Increment turn counter
                     print(f"Turn count: {turn_count}")
+############
+                     # Decide turn direction using modulo
+                    if current_aisle % 2 == 0:
+                        print("Even aisle — turning LEFT.")
+                        # Turn left (180° turn via left)
+                        turn_right()  # Assuming right turn actually turns left logically
+                        time.sleep(0.5)
+                        forward()
+                        time.sleep(1.5)
+                        turn_right()
+                        time.sleep(0.5)
+                    else:
+                        print("Odd aisle — turning RIGHT.")
+                        # Turn right (180° turn via right)
+                        turn_right()
+                        time.sleep(0.5)
+                        forward()
+                        time.sleep(1.5)
+                        turn_right()
+                        time.sleep(0.5)
+##############
+                    stop()
+                    time.sleep(0.5)
+
                     
                     # Update aisle number in main application
                     app.after(0, app.update_aisle)
