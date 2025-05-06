@@ -34,19 +34,6 @@ def navigate_aisles(app):  # Add app parameter
                 if sensor_data == "1":
                     print("Wall detected! Performing 180-degree turn...")
                     stop()
-                    time.sleep(0.5)
-
-                    turn_right()
-                    time.sleep(0.5)
-
-                    forward()
-                    time.sleep(1.5)
-
-                    turn_right()
-                    time.sleep(0.5)
-
-                    stop()
-                    time.sleep(0.5)
                     
                     turn_count += 1  # Increment turn counter
                     print(f"Turn count: {turn_count}")
@@ -55,7 +42,7 @@ def navigate_aisles(app):  # Add app parameter
                     if app.current_aisle % 2 == 0:
                         print("Even aisle — turning LEFT.")
                         # Turn left (180° turn via left)
-                        turn_left()  # Assuming right turn actually turns left logically
+                        turn_left()
                         time.sleep(0.5)
                         forward()
                         time.sleep(1.5)
