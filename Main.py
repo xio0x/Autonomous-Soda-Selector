@@ -154,7 +154,7 @@ class SodaSelector(ctk.CTk):
                 self.detection_thread = threading.Thread(target=self.detect_objects, daemon=True)
                 self.detection_thread.start()
 
-                self.navigation_thread = threading.Thread(target=navigate_aisles, daemon=True)
+                self.navigation_thread = threading.Thread(target=navigate_aisles(self), daemon=True)
                 self.navigation_thread.start()
 
 
